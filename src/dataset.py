@@ -24,7 +24,7 @@ class ARCDataset(Dataset):
         self.task_registry = []
 
         if os.path.isdir(data_path):
-            json_files = glob.glob(os.path.join(data_path, '**', '*.json'), recursive=True)
+            json_files = glob.glob(os.path.join(data_path, '**', '*.json'), recursive=True)[:1000]
             for file_path in json_files:
                 # We can do a quick scan to count tasks without keeping data in memory
                 try:
