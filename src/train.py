@@ -75,7 +75,7 @@ def train():
     # Dataset and DataLoader
     dataset = ARCDataset(data_path=args.data_path, max_size=args.max_size, max_pairs=args.max_pairs)
     # Use default collate function since dataset yields fixed-size dicts
-    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True , num_workers=4, pin_memory=True)
 
     # Model
     model = JEPARC(
