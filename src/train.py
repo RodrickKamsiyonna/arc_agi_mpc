@@ -86,7 +86,7 @@ def train():
         dataset, 
         batch_size=args.batch_size, 
         shuffle=True, 
-        num_workers=4 * num_gpus, # Scale workers with GPUs
+        num_workers=2, # Scale workers with GPUs
         pin_memory=True
     )
 
