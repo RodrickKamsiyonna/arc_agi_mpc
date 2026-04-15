@@ -122,11 +122,17 @@ def train():
             output_mask = batch["output_mask"].to(device)
             pair_mask = batch["pair_mask"].to(device)
 
+            print("pair_mask valid count:", pair_mask.sum().item())
+            print("pair_mask dtype:", pair_mask.dtype)
+            print("pair_mask shape:", pair_mask.shape)
+
             with torch.amp.autocast('cuda' if torch.cuda.is_available() else 'cpu', enabled=torch.cuda.is_available(), dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16):
                 z_in, z_out, z_pred, mus, logvars, actions = model(input_grid, input_mask, output_grid, output_mask)
                 loss, metrics = criterion(z_out, z_pred, mus, logvars, actions, pair_mask)
                 loss = loss / args.grad_accum_steps
-
+            
+            print("loss requires_grad:", loss.requires_grad)
+            print("loss grad_fn:", loss.grad_fn)
             scaler.scale(loss).backward()
 
             if (step + 1) % args.grad_accum_steps == 0:
