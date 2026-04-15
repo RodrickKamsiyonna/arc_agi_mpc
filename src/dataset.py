@@ -22,7 +22,9 @@ class ARCDataset(Dataset):
         self.task_registry = []  # list of file paths, one per task
 
         if os.path.isdir(data_path):
-            json_files = glob.glob(os.path.join(data_path, '**', '*.json'), recursive=True)[:1000]
+            json_files = glob.glob(os.path.join(data_path, '**', '*.json'), recursive=True)
+            print("Number of Files:")
+            print(len(json_files))
             for file_path in json_files:
                 try:
                     pairs = self._load_pairs(file_path)
