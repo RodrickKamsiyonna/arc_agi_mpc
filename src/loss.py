@@ -90,9 +90,6 @@ class JEPARCLoss(nn.Module):
             V = task_actions.shape[0] # Number of valid pairs
             
             if V > 1:
-                # Normalize for stability
-                task_actions = F.normalize(task_actions, dim=-1)
-
                 # Get indices for unique pairs, excluding self-comparisons (offset=1)
                 row_idx, col_idx = torch.triu_indices(V, V, offset=1)
 
