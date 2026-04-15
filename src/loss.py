@@ -76,7 +76,7 @@ class JEPARCLoss(nn.Module):
             loss_kl = torch.zeros(1, device=device, requires_grad=True).squeeze()
 
         # =========================
-        # 3. Consistency Loss (Variance)
+        # 3. Consistency Loss (pairwise MSE - Fixed)
         # =========================
         loss_consist = torch.zeros(1, device=device, requires_grad=True).squeeze()
         consist_count = 0
@@ -87,13 +87,19 @@ class JEPARCLoss(nn.Module):
             task_mask = pair_mask[i]
             task_actions = actions[i][task_mask]  # (num_valid_pairs, N, A)
 
-            if task_actions.shape[0] > 1:
+            V = task_actions.shape[0] # Number of valid pairs
+            
+            if V > 1:
+                # Normalize for stability
+                task_actions = F.normalize(task_actions, dim=-1)
 
-                # Compute variance across the 'pairs' dimension (dim=0)
-                # Then take the mean over the remaining dimensions
-                task_variance = task_actions.var(dim=0).mean()
-                
-                loss_consist = loss_consist + task_variance
+                # Get indices for unique pairs, excluding self-comparisons (offset=1)
+                row_idx, col_idx = torch.triu_indices(V, V, offset=1)
+
+                # Calculate differences ONLY for those unique pairs
+                diffs = task_actions[row_idx] - task_actions[col_idx]  # (unique_pairs, N, A)
+
+                loss_consist = loss_consist + diffs.pow(2).mean()
                 consist_count += 1
 
         if consist_count > 0:
