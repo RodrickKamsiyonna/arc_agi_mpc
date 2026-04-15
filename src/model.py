@@ -106,16 +106,26 @@ class ActionInference(nn.Module):
         super().__init__()
         self.num_actions = num_actions
         self.action_dim = action_dim
-
         # We concatenate z_in and z_out, so input dim is hidden_dim * 2
         self.fc = nn.Sequential(
             nn.Linear(hidden_dim * 2, hidden_dim),
             SwiGLU(hidden_dim, hidden_dim),
         )
-
-        # Separate heads for each action's mu and sigma
-        self.mu_heads = nn.ModuleList([nn.Linear(hidden_dim, action_dim) for _ in range(num_actions)])
-        self.logvar_heads = nn.ModuleList([nn.Linear(hidden_dim, action_dim) for _ in range(num_actions)])
+        # Non-linear heads for each action's mu and logvar
+        self.mu_heads = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.SiLU(),
+                nn.Linear(hidden_dim, action_dim)
+            ) for _ in range(num_actions)
+        ])
+        self.logvar_heads = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.SiLU(),
+                nn.Linear(hidden_dim, action_dim)
+            ) for _ in range(num_actions)
+        ])
 
     def forward(self, z_in, z_out):
         """
@@ -124,18 +134,15 @@ class ActionInference(nn.Module):
         """
         z_pair = torch.cat([z_in, z_out], dim=-1)
         features = self.fc(z_pair)
-
         mus = []
         logvars = []
         for i in range(self.num_actions):
             mus.append(self.mu_heads[i](features))
             logvars.append(self.logvar_heads[i](features))
-
-        mus = torch.stack(mus, dim=1) # (batch, num_actions, action_dim)
+        mus = torch.stack(mus, dim=1)       # (batch, num_actions, action_dim)
         logvars = torch.stack(logvars, dim=1) # (batch, num_actions, action_dim)
-
         return mus, logvars
-
+        
     def sample(self, mus, logvars):
         stds = torch.exp(0.5 * logvars)
         eps = torch.randn_like(stds)
