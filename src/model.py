@@ -132,7 +132,7 @@ class ActionInference(nn.Module):
         z_in: (batch, hidden_dim)
         z_out: (batch, hidden_dim)
         """
-        z_pair = torch.cat([z_in, z_out], dim=-1)
+        z_pair = torch.cat([z_in.detach(), z_out.detach()], dim=-1)
         features = self.fc(z_pair)
         mus = []
         logvars = []
