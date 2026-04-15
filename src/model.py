@@ -56,7 +56,7 @@ class TransformerEncoderLayerModern(nn.Module):
         return src
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, vocab_size=11, hidden_dim=512, num_layers=4, nhead=8, max_size=30):
+    def __init__(self, vocab_size=11, hidden_dim=512, num_layers=6, nhead=4, max_size=30):
         super().__init__()
         # ARC digits 0-9 plus pad token (10)
         self.embedding = nn.Embedding(vocab_size, hidden_dim, padding_idx=10)
